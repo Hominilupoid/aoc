@@ -14,11 +14,13 @@ impl Komputer {
 		}
 	}
 
-	fn add (&mut self, ps: [usize;3]) {
+	fn add (&mut self) {
+		let ps = self.params();
 		self.input[ps[2]] = self.input[ps[0]] + self.input[ps[1]];
 	}
 
-	fn mply (&mut self, ps: [usize;3]) {
+	fn mply (&mut self) {
+		let ps = self.params();
 		self.input[ps[2]] = self.input[ps[0]]*self.input[ps[1]];
 	}
 
@@ -26,11 +28,15 @@ impl Komputer {
 		self.input[self.cursor + offset] as usize
 	}
 
+	fn params (&self) -> [usize;3] {
+		[self.at(1),self.at(2),self.at(3)]
+	}
+
 	pub fn run (&mut self) -> Vec<i32> {
 		loop {
 			match self.input[self.cursor] {
-				1	=>	self.add([self.at(1),self.at(2),self.at(3)]),
-				2	=>	self.mply([self.at(1),self.at(2),self.at(3)]),
+				1	=>	self.add(),
+				2	=>	self.mply(),
 				99	=>	break,
 				_	=>	panic!("Horrible!"),
 			}
