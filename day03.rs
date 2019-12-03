@@ -34,13 +34,26 @@ impl Debug for Direction {
 	}
 }
 
-fn parse (s: &str) -> Vec<Direction> {
+fn parse (s: &str) -> Vec<Vec<Direction>> {
+	let mut wires = Vec::new();
 	let mut v = Vec::new();
 	let mut ns = None;
 	let mut dir = None;
 	for c in s.chars() {
 		match c as usize {
-			10							=>	(),
+			10							=>	{
+												v.push(match dir {
+													Some('U')	=>	Direction::Up(ns.unwrap()),
+													Some('D')	=>	Direction::Down(ns.unwrap()),
+													Some('L')	=>	Direction::Left(ns.unwrap()),
+													Some('R')	=>	Direction::Right(ns.unwrap()),
+													_			=>	unreachable!(),
+												});
+												dir = None;
+												ns = None;
+												wires.push(v);
+												v = Vec::new();
+											},
 			44							=>	{
 												v.push(match dir {
 													Some('U')	=>	Direction::Up(ns.unwrap()),
@@ -61,7 +74,7 @@ fn parse (s: &str) -> Vec<Direction> {
 			_ 							=>	dir = Some(c),
 		};
 	}
-	v
+	wires
 }
 
 fn main () -> std::io::Result<()> {
