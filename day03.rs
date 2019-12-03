@@ -15,14 +15,16 @@ pub struct Wire {
 	id: u32,
 	xy: [i32;2],
 	dim: [i32;2],
+	n: u32,
 }
 
 impl Wire {
-	pub fn new (id: u32, xy: [i32;2], dim: [i32;2]) -> Wire {
+	pub fn new (id: u32, xy: [i32;2], dim: [i32;2], n: u32) -> Wire {
 		Wire {
 			id,
 			xy,
 			dim,
+			n,
 		}
 	}
 }
@@ -78,44 +80,36 @@ fn main () -> std::io::Result<()> {
 	for (i,ds) in parse(&data).iter().enumerate() {
 		let mut wires = Vec::new();
 		let mut xy = [0,0];
+		let mut n = 0;
 		for d in ds {
 			let dim = match d {
-				&Direction::Up(y)	=>	[0,y],
-				&Direction::Down(y)	=>	[0,-y],
-				&Direction::Left(x)	=>	[-x,0],
+				&Direction::Up(y)		=>	[0,y],
+				&Direction::Down(y)		=>	[0,-y],
+				&Direction::Left(x)		=>	[-x,0],
 				&Direction::Right(x)	=>	[x,0],
 			};
 			let wdim = [dim[0]/2,dim[1]/2];
-			wires.push(Wire::new(i as u32,[xy[0] + wdim[0],xy[1] + wdim[1]],wdim));
+			wires.push(Wire::new(i as u32,[xy[0] + wdim[0],xy[1] + wdim[1]],wdim,n));
+			n += dim[0].abs() as u32 + dim[1].abs() as u32;
 			xy[0] += dim[0];
 			xy[1] += dim[1];
 		}
 		superwires.push(wires);
 	}
-	let mut nearest = std::i32::MAX;
+	println!("{:?}",superwires);
+	let mut fewest = std::u32::MAX;
 	let (wsa,wsb) = superwires.split_first().unwrap();
 	for a in wsa {
 		for b in &wsb[0] {
 			if (a.xy[0] - b.xy[0]).abs() <= a.dim[0] + b.dim[0]
 			&& (a.xy[1] - b.xy[1]).abs() <= a.dim[1] + b.dim[1] {
-				let cx = [if a.dim[0] == 0 {
-					a.xy[0]
-				}
-				else {
-					b.xy[0]
-				},if a.dim[1] == 0 {
-					a.xy[1]
-				}
-				else {
-					b.xy[1]
-				}];
-				let md = cx[0].abs() + cx[1].abs();
-				if md < nearest {
-					nearest = md;
+				let n = a.n + b.n;
+				if n < fewest {
+					fewest = n;
 				}
 			}
 		}
 	}
-	println!("SHORTEST MANHATTAN DISTANCE:\t{}",nearest);
+	println!("FEWEST STEPS:\t{}",fewest);
 	Ok(())
 }
