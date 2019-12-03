@@ -42,20 +42,31 @@ impl WireGrid {
 		&mut self.grid[xy[1]][xy[0]]
 	}
 
-	fn center (&mut self) -> &mut Vec<Wire> {
-		let (y,x) = (self.grid.len()/2,self.grid[0].len()/2);
-		&mut self.grid[y][x]
+	fn center (&mut self) -> [usize;2] {
+		[self.grid[0].len()/2,self.grid.len()/2]
 	}
 
 	pub fn add (&mut self, ds: &[Direction], w: Wire) {
-		let xy = self.center();
-		self.center().push(w);
+		let mut xy = self.center();
+		self.at_mut(xy).push(w);
 		for d in ds {
 			match d {
-				Direction::Up(x)	=>	println!("up({}):{}",w.id,x),
-				Direction::Down(x)	=>	println!("down({}):{}",w.id,x),
-				Direction::Left(x)	=>	println!("left({}):{}",w.id,x),
-				Direction::Right(x)	=>	println!("right({}):{}",w.id,x),
+				&Direction::Up(x)		=>	for _ in 0..x {
+												xy[0] -= 1;
+												self.at_mut(xy).push(w);
+											},
+				&Direction::Down(x)		=>	for _ in 0..x {
+												xy[0] += 1;
+												self.at_mut(xy).push(w);
+											},
+				&Direction::Left(x)		=>	for _ in 0..x {
+												xy[1] -= 1;
+												self.at_mut(xy).push(w);
+											},
+				&Direction::Right(x)	=>	for _ in 0..x {
+												xy[1] += 1;
+												self.at_mut(xy).push(w);
+											},
 			}
 		}
 	}
@@ -108,7 +119,7 @@ fn main () -> std::io::Result<()> {
 	let mut file = File::open("input03")?;
 	let mut data = String::new();
 	file.read_to_string(&mut data)?;
-	let mut wg = WireGrid::new([1024,1024]);
+	let mut wg = WireGrid::new([4096,4096]);
 	for (i,ds) in parse(&data).iter().enumerate() {
 		let w = Wire::new(i);
 		wg.add(&ds,w);
