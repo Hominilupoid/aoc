@@ -27,6 +27,11 @@ impl Wire {
 			n,
 		}
 	}
+
+	pub fn within (a: &Wire, b: &Wire, d: usize) -> bool {
+		(a.xy[d] >= b.xy[d]) != (a.xy[d] >= b.xy[d] + b.dim[d])
+		&& (a.xy[d] <= b.xy[d]) != (a.xy[d] <= b.xy[d] + b.dim[d])
+	}
 }
 
 fn parse (s: &str) -> Vec<Vec<Direction>> {
@@ -88,21 +93,19 @@ fn main () -> std::io::Result<()> {
 				&Direction::Left(x)		=>	[-x,0],
 				&Direction::Right(x)	=>	[x,0],
 			};
-			let wdim = [dim[0]/2,dim[1]/2];
-			wires.push(Wire::new(i as u32,[xy[0] + wdim[0],xy[1] + wdim[1]],wdim,n));
+			wires.push(Wire::new(i as u32,xy,dim,n));
 			n += dim[0].abs() as u32 + dim[1].abs() as u32;
 			xy[0] += dim[0];
 			xy[1] += dim[1];
 		}
 		superwires.push(wires);
 	}
-	println!("{:?}",superwires);
 	let mut fewest = std::u32::MAX;
 	let (wsa,wsb) = superwires.split_first().unwrap();
 	for a in wsa {
 		for b in &wsb[0] {
-			if (a.xy[0] - b.xy[0]).abs() <= a.dim[0] + b.dim[0]
-			&& (a.xy[1] - b.xy[1]).abs() <= a.dim[1] + b.dim[1] {
+			if Wire::within(a,b,0) && Wire::within(b,a,1)
+			|| Wire::within(a,b,1) && Wire::within(b,a,0) {
 				let n = a.n + b.n;
 				if n < fewest {
 					fewest = n;
