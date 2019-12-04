@@ -106,7 +106,7 @@ fn main () -> std::io::Result<()> {
 		for b in &wsb[0] {
 			if Wire::within(a,b,0) && Wire::within(b,a,1)
 			|| Wire::within(a,b,1) && Wire::within(b,a,0) {
-				let n = a.n + b.n;
+				let n = a.n + b.n + (a.xy[0] - b.xy[0]).abs() as u32 + (a.xy[1] - b.xy[1]).abs() as u32;
 				if n < fewest {
 					fewest = n;
 				}
