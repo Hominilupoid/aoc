@@ -26,6 +26,7 @@ impl Entry {
 
 pub struct Code {
 	entries: Vec<Entry>,
+	//min: Vec<Entry>,
 	max: u32,
 }
 
@@ -33,8 +34,27 @@ impl Code {
 	pub fn new (len: usize) -> Code {
 		Code {
 			entries: vec![Entry::new();len],
+			//min: vec![Entry::new();len],
 			max: 10u32.pow(u32::try_from(len).unwrap() - 1),
 		}
+	}
+
+	pub fn with_bounds (min: u32, max: u32) -> Code {
+		if max < min {
+			panic!("Horrible!");
+		}
+		//let es = vec![Entry::new();(max as f32).log10().floor() as usize + 1];
+		let mut c = Code {
+			//entries: es.clone(),
+			//min: es,
+			entries: vec![Entry::new();(max as f32).log10().floor() as usize + 1],
+			max,
+		};
+		while c.code() < min {
+			c.next();
+		}
+		//c.min = c.entries.clone();
+		c
 	}
 
 	pub fn code (&self) -> u32 {
@@ -60,6 +80,7 @@ impl Iterator for Code {
 				}
 			}
 			if c == self.max {
+				//self.entries = self.min.clone();
 				None
 			}
 			else {
@@ -73,7 +94,7 @@ impl Iterator for Code {
 }
 
 fn main () {
-	let code = Code::new(6);
+	let code = Code::with_bounds(236491,713787);
 	for c in code {
 		println!("{}",c);
 	}
