@@ -74,43 +74,36 @@ impl Code {
 			double
 		}
 	}
+
+	fn next_valid (&mut self) -> bool {
+		loop {
+			let mut p = 0;
+			while self.entries[p].next() {
+				p += 1;
+				if p == self.entries.len() {
+					return false;
+				}
+			}
+			if self.valid() {
+				return true;
+			}
+		}
+	}
 }
 
 impl Iterator for Code {
 	type Item = u32;
 
 	fn next (&mut self) -> Option<Self::Item> {
-		if self.overflow {
-			None
-		}
-		else if !self.entries.is_empty() {
+		if !self.entries.is_empty() && !self.overflow {
 			if !self.valid() {
-				loop {
-					let mut p = 0;
-					while self.entries[p].next() {
-						p += 1;
-						if p == self.entries.len() {
-							return None;
-						}
-					}
-					if self.valid() {
-						break;
-					}
+				if !self.next_valid() {
+					return None;
 				}
 			}
 			let c = self.code();
-			loop {
-				let mut p = 0;
-				while self.entries[p].next() {
-					p += 1;
-					if p == self.entries.len() {
-						self.overflow = true;
-						return Some(c);
-					}
-				}
-				if self.valid() {
-					break;
-				}
+			if !self.next_valid() {
+				self.overflow = true;
 			}
 			Some(c)
 		}
