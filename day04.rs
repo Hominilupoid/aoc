@@ -52,6 +52,7 @@ impl Code {
 		else {
 			let mut n = self.entries[0].n;
 			let mut d = 1;
+			let mut double = false;
 			for i in 1..self.entries.len() {
 				if self.entries[i].n > n {
 					return false;
@@ -61,9 +62,16 @@ impl Code {
 				}
 				else {
 					n = self.entries[i].n;
+					if d == 2 {
+						double = true;
+					}
+					d = 1;
 				}
 			}
-			d >= 2
+			if d == 2 {
+				double = true;
+			}
+			double
 		}
 	}
 }
