@@ -26,35 +26,15 @@ impl Entry {
 
 pub struct Code {
 	entries: Vec<Entry>,
-	//min: Vec<Entry>,
-	max: u32,
+	overflow: bool,
 }
 
 impl Code {
 	pub fn new (len: usize) -> Code {
 		Code {
 			entries: vec![Entry::new();len],
-			//min: vec![Entry::new();len],
-			max: 10u32.pow(u32::try_from(len).unwrap() - 1),
+			overflow: false,
 		}
-	}
-
-	pub fn with_bounds (min: u32, max: u32) -> Code {
-		if max < min {
-			panic!("Horrible!");
-		}
-		//let es = vec![Entry::new();(max as f32).log10().floor() as usize + 1];
-		let mut c = Code {
-			//entries: es.clone(),
-			//min: es,
-			entries: vec![Entry::new();(max as f32).log10().floor() as usize + 1],
-			max,
-		};
-		while c.code() < min {
-			c.next();
-		}
-		//c.min = c.entries.clone();
-		c
 	}
 
 	pub fn code (&self) -> u32 {
@@ -64,28 +44,67 @@ impl Code {
 		}
 		c
 	}
+
+	fn valid (&self) -> bool {
+		if self.entries.len() < 2 {
+			false
+		}
+		else {
+			let mut n = self.entries[0].n;
+			let mut d = 1;
+			for i in 1..self.entries.len() {
+				if self.entries[i].n > n {
+					return false;
+				}
+				else if self.entries[i].n == n {
+					d += 1;
+				}
+				else {
+					n = self.entries[i].n;
+				}
+			}
+			d >= 2
+		}
+	}
 }
 
 impl Iterator for Code {
 	type Item = u32;
 
 	fn next (&mut self) -> Option<Self::Item> {
-		if !self.entries.is_empty() {
+		if self.overflow {
+			None
+		}
+		else if !self.entries.is_empty() {
+			if !self.valid() {
+				loop {
+					let mut p = 0;
+					while self.entries[p].next() {
+						p += 1;
+						if p == self.entries.len() {
+							return None;
+						}
+					}
+					if self.valid() {
+						break;
+					}
+				}
+			}
 			let c = self.code();
-			let mut p = 0;
-			while self.entries[p].next() {
-				p += 1;
-				if p == self.entries.len() {
+			loop {
+				let mut p = 0;
+				while self.entries[p].next() {
+					p += 1;
+					if p == self.entries.len() {
+						self.overflow = true;
+						return Some(c);
+					}
+				}
+				if self.valid() {
 					break;
 				}
 			}
-			if c == self.max {
-				//self.entries = self.min.clone();
-				None
-			}
-			else {
-				Some(c)
-			}
+			Some(c)
 		}
 		else {
 			None
@@ -94,8 +113,10 @@ impl Iterator for Code {
 }
 
 fn main () {
-	let code = Code::with_bounds(236491,713787);
+	let code = Code::new(6);
+	let mut v = Vec::new();
 	for c in code {
-		println!("{}",c);
+		v.push(c);
 	}
+	println!("{:?}",v.iter().filter(|&&x| x >= 236_491 && x <= 713_787).collect::<Vec<_>>().len());
 }
