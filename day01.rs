@@ -24,8 +24,7 @@ fn parse (s: &str) -> Vec<i32> {
 	v
 }
 
-fn fuel (n: i32) -> i32 {
-	let mut n = n;
+fn fuel (mut n: i32) -> i32 {
 	let mut f = 0;
 	loop {
 		n = n/3 - 2;

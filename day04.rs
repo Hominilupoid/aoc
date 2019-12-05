@@ -1,5 +1,3 @@
-use std::convert::TryFrom;
-
 #[derive(Clone)]
 pub struct Entry {
 	n: u32,
@@ -39,8 +37,10 @@ impl Code {
 
 	pub fn code (&self) -> u32 {
 		let mut c = 0;
+		let mut x = 1;
 		for i in 0..self.entries.len() {
-			c += 10u32.pow(u32::try_from(i).unwrap())*self.entries[i].n;
+			c += self.entries[i].n*x;
+			x *= 10;
 		}
 		c
 	}
