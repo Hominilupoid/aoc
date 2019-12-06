@@ -2,6 +2,39 @@ use std::fs::File;
 use std::io::Read;
 use std::collections::HashMap;
 
+pub struct Orbits {
+	orbits: HashMap<String,Vec<String>>,
+}
+
+impl Orbits {
+	pub fn new (hm: HashMap<String,Vec<String>>) -> Orbits {
+		Orbits {
+			orbits: hm,
+		}
+	}
+
+	fn suborbits (&self, k: &str) -> u32 {
+		if let Some(os) = self.orbits.get(k) {
+			let mut x = 0;
+			for o in os {
+				x += self.suborbits(o) + 1;
+			}
+			x
+		}
+		else {
+			0
+		}
+	}
+
+	pub fn orbits (&self) -> u32 {
+		let mut x = 0;
+		for o in &self.orbits {
+			x += self.suborbits(o.0);
+		}
+		x
+	}
+}
+
 fn parse (x: &str) -> HashMap<String,Vec<String>> {
 	let mut hm = HashMap::<String,Vec<String>>::new();
 	let mut s = String::new();
@@ -35,6 +68,7 @@ fn main () -> std::io::Result<()> {
 	let mut data = String::new();
 	let mut file = File::open("input06")?;
 	file.read_to_string(&mut data)?;
-	println!("{:?}",parse(&data));
+	let orbits = Orbits::new(parse(&data));
+	println!("{}",orbits.orbits());
 	Ok(())
 }
