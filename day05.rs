@@ -14,49 +14,59 @@ impl Komputer {
 		}
 	}
 
-	fn add (&mut self) -> usize {
-		let ps = self.params();
-		self.input[ps[2]] = self.input[ps[0]] + self.input[ps[1]];
+	fn add (&mut self, modes: [i32;2]) -> usize {
+		let p = self.offset(3);
+		self.input[p] = self.param(0,&modes) + self.param(1,&modes);
 		4
 	}
 
-	fn mply (&mut self) -> usize {
-		let ps = self.params();
-		self.input[ps[2]] = self.input[ps[0]]*self.input[ps[1]];
+	fn mply (&mut self, modes: [i32;2]) -> usize {
+		let p = self.offset(3);
+		self.input[p] = self.param(0,&modes)*self.param(1,&modes);
 		4
 	}
 
 	fn read (&mut self) -> usize {
 		let mut s = String::new();
-		let ps = self.params();
 		print!("Enter integer: ");
 		stdout().flush();
 		stdin().read_line(&mut s).expect("Input error");
-		self.input[ps[0]] = s.trim().parse().expect("Not an integer");
+		let p = self.offset(1);
+		self.input[p] = s.trim().parse().expect("Not an integer");
 		2
 	}
 
-	fn write (&mut self) -> usize {
-		let ps = self.params();
-		println!("{}",self.input[ps[0]]);
+	fn write (&mut self, modes: [i32;1]) -> usize {
+		println!("{}",self.param(0,&modes));
 		2
 	}
 
-	fn at (&self, offset: usize) -> usize {
-		self.input[self.cursor + offset] as usize
+	fn offset (&self, p: usize) -> usize {
+		self.input[self.cursor + p] as usize
 	}
 
-	fn params (&self) -> [usize;3] {
-		[self.at(1),self.at(2),self.at(3)]
+	fn param (&self, p: usize, modes: &[i32]) -> i32 {
+		if modes[p] == 0 {
+			self.input[self.input[self.cursor + p + 1] as usize]
+		}
+		else {
+			self.input[self.cursor + p + 1]
+		}
 	}
 
 	pub fn run (&mut self) -> Vec<i32> {
 		loop {
-			self.cursor += match self.input[self.cursor] {
-				1	=>	self.add(),
-				2	=>	self.mply(),
+			let mut x = self.input[self.cursor];
+			let m2 = x/1000;
+			x = x%1000;
+			let m1 = x/100;
+			x = x%100;
+			println!("{} {} {:02}",m2,m1,x);
+			self.cursor += match x {
+				1	=>	self.add([m1,m2]),
+				2	=>	self.mply([m1,m2]),
 				3	=>	self.read(),
-				4	=>	self.write(),
+				4	=>	self.write([m1]),
 				99	=>	break,
 				x	=>	panic!("Horrible at {}: {}",self.cursor,x),
 			};
