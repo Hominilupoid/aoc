@@ -33,6 +33,23 @@ impl Orbits {
 		}
 		x
 	}
+
+	pub fn find<'a> (&'a self, mut k: &'a str) -> Vec<String> {
+		let mut v = Vec::new();
+		'outer: loop {
+			for os in &self.orbits {
+				for o in os.1 {
+					if o == k {
+						v.push(o.to_owned());
+						k = os.0;
+						continue 'outer;
+					}
+				}
+			}
+			break;
+		}
+		v
+	}
 }
 
 fn parse (x: &str) -> HashMap<String,Vec<String>> {
@@ -69,6 +86,7 @@ fn main () -> std::io::Result<()> {
 	let mut file = File::open("input06")?;
 	file.read_to_string(&mut data)?;
 	let orbits = Orbits::new(parse(&data));
-	println!("{}",orbits.orbits());
+	println!("{:?}",orbits.find("YOU"));
+	println!("{:?}",orbits.find("SAN"));
 	Ok(())
 }
