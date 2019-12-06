@@ -86,7 +86,11 @@ fn main () -> std::io::Result<()> {
 	let mut file = File::open("input06")?;
 	file.read_to_string(&mut data)?;
 	let orbits = Orbits::new(parse(&data));
-	println!("{:?}",orbits.find("YOU"));
-	println!("{:?}",orbits.find("SAN"));
+	let (mut to_you,mut to_san) = (orbits.find("YOU"),orbits.find("SAN"));
+	while to_you.last() == to_san.last() {
+		to_you.pop();
+		to_san.pop();
+	}
+	println!("{}",to_you.len() + to_san.len() - 2);
 	Ok(())
 }
