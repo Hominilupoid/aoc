@@ -6,6 +6,7 @@ pub struct Komputer {
 	params: Vec<i32>,
 	output: Vec<i32>,
 	cursor: usize,
+	pause: bool,
 }
 
 impl Komputer {
@@ -15,7 +16,13 @@ impl Komputer {
 			params: params.to_vec(),
 			output: Vec::new(),
 			cursor: 0,
+			pause: false,
 		}
+	}
+
+	fn params (&mut self, ps: &[i32]) {
+		self.params.extend_from_slice(ps);
+		self.pause = false;
 	}
 
 	fn add (&mut self, modes: [i32;2]) -> usize {
@@ -37,8 +44,14 @@ impl Komputer {
 		stdout().flush();
 		stdin().read_line(&mut s).expect("Input error");*/
 		let p = self.offset(1);
-		self.input[p] = self.params.remove(0);
-		2
+		if !self.params.is_empty() {
+			self.input[p] = self.params.remove(0);
+			2
+		}
+		else {
+			self.pause = true;
+			0
+		}
 	}
 
 	fn write (&mut self, modes: [i32;1]) -> usize {
@@ -120,6 +133,9 @@ impl Komputer {
 				99	=>	break,
 				x	=>	panic!("Horrible at {}: {}",self.cursor,x),
 			};
+			if self.pause {
+				break;
+			}
 		}
 		self.output.clone()
 	}
@@ -174,20 +190,33 @@ fn main () -> std::io::Result<()> {
 	let mut file = File::open("input07")?;
 	file.read_to_string(&mut data)?;
 
-	let a = [0,1,2,3,4];
+	let a = [5,6,7,8,9];
 	let v = Vec::new();
 	let mut vs = Vec::new();
 	permute(&a,&v,&mut vs);
 
 	let mut highest = 0;
 	for v in &vs {
-		let mut o = 0;
+		let mut o = vec![0];
+		let mut ks = Vec::new();
 		for i in 0..5 {
-			o = Komputer::new(&parse(&data),&[v[i],o]).run()[0];
+			ks.push(Komputer::new(&parse(&data),&[v[i]]));
 		}
+		let mut i = 0;
+		loop {
+			ks[i].params(&o);
+			print!("{:?}",ks[i].params);
+			o = ks[i].run();
+			println!(" -> {:?}",o);
+			i += 1;
+			if i == ks.len() {
+				i = 0;
+			}
+		}
+		/*
 		if o > highest {
 			highest = o;
-		}
+		}*/
 	}
 	println!("{}",highest);
 
