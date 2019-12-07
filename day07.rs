@@ -22,7 +22,6 @@ impl Komputer {
 
 	fn params (&mut self, ps: &[i32]) {
 		self.params.extend_from_slice(ps);
-		self.pause = false;
 	}
 
 	fn add (&mut self, modes: [i32;2]) -> usize {
@@ -134,10 +133,13 @@ impl Komputer {
 				x	=>	panic!("Horrible at {}: {}",self.cursor,x),
 			};
 			if self.pause {
+				self.pause = false;
 				break;
 			}
 		}
-		self.output.clone()
+		let o = self.output.clone();
+		self.output.clear();
+		o
 	}
 }
 
@@ -197,28 +199,31 @@ fn main () -> std::io::Result<()> {
 
 	let mut highest = 0;
 	for v in &vs {
-		let mut o = vec![0];
 		let mut ks = Vec::new();
 		for i in 0..5 {
 			ks.push(Komputer::new(&parse(&data),&[v[i]]));
 		}
+		let mut o = 0;
 		let mut i = 0;
 		loop {
-			ks[i].params(&o);
+			ks[i].params(&[o]);
 			print!("{:?}",ks[i].params);
-			o = ks[i].run();
+			let x = ks[i].run();
+			if x.is_empty() {
+				break;
+			}
+			o = x[0];
 			println!(" -> {:?}",o);
 			i += 1;
 			if i == ks.len() {
 				i = 0;
 			}
 		}
-		/*
 		if o > highest {
 			highest = o;
-		}*/
+		}
 	}
-	println!("{}",highest);
+	println!("\n\n{}",highest);
 
 	Ok(())
 }
