@@ -41,6 +41,48 @@ impl Komputer {
 		2
 	}
 
+	fn jumpt (&mut self, modes: [i32;2]) -> usize {
+		if self.param(0,&modes) != 0 {
+			self.cursor = self.param(1,&modes) as usize;
+			0
+		}
+		else {
+			3
+		}
+	}
+
+	fn jumpf (&mut self, modes: [i32;2]) -> usize {
+		if self.param(0,&modes) == 0 {
+			self.cursor = self.param(1,&modes) as usize;
+			0
+		}
+		else {
+			3
+		}
+	}
+
+	fn less (&mut self, modes: [i32;2]) -> usize {
+		let p = self.offset(3);
+		self.input[p] = if self.param(0,&modes) < self.param(1,&modes) {
+			1
+		}
+		else {
+			0
+		};
+		4
+	}
+
+	fn equal (&mut self, modes: [i32;2]) -> usize {
+		let p = self.offset(3);
+		self.input[p] = if self.param(0,&modes) == self.param(1,&modes) {
+			1
+		}
+		else {
+			0
+		};
+		4
+	}
+
 	fn offset (&self, p: usize) -> usize {
 		self.input[self.cursor + p] as usize
 	}
@@ -67,6 +109,10 @@ impl Komputer {
 				2	=>	self.mply([m1,m2]),
 				3	=>	self.read(),
 				4	=>	self.write([m1]),
+				5	=>	self.jumpt([m1,m2]),
+				6	=>	self.jumpf([m1,m2]),
+				7	=>	self.less([m1,m2]),
+				8	=>	self.equal([m1,m2]),
 				99	=>	break,
 				x	=>	panic!("Horrible at {}: {}",self.cursor,x),
 			};
