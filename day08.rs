@@ -49,5 +49,28 @@ fn main () -> std::io::Result<()> {
 		}
 	}
 	println!("{}",xs.0*xs.1);
+	let mut img = String::new();
+	let mut p = 0;
+	for i in 0..150 {
+		for l in &ls {
+			match l[i] {
+				0	=>	{
+							img.push(' ');
+							break;
+						},
+				1	=>	{
+							img.push('x');
+							break;
+						},
+				_	=>	(),
+			}
+		}
+		p += 1;
+		if p == 25 {
+			img.push('\n');
+			p = 0;
+		}
+	}
+	println!("{}",img);
 	Ok(())
 }
