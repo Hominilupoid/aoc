@@ -1,7 +1,7 @@
 use std::fs::File;
 use std::io::Read;
 
-#[derive(Debug)]
+#[derive(Clone,Copy,Debug)]
 pub struct Asteroid {
 	x: i32,
 	y: i32,
@@ -80,13 +80,38 @@ fn main () -> std::io::Result<()> {
 		ns.push((i,v.len() as i32 - n - 1));
 	}
 	println!("{:?}",ns);
-	let mut most = 0;
+	let mut most = (-1,0);
 	for n in ns {
-		if n.1 > most {
-			most = n.1;
+		if n.1 > most.1 {
+			most = (n.0 as i32,n.1);
 		}
 	}
-	println!("{}",most);
+	println!("{:?}",most);
+
+	let mut v2 = Vec::new();
+	let a = &v[most.0 as usize];
+	'outer2: for b in &v {
+		let ab = a.line(&b);
+		if ab != (0.0,0.0) {
+			for c in &v {
+				let ac = a.line(&c);
+				if (ab.0 == 0.0 && ac.0 == 0.0 && ab.1.signum() == ac.1.signum()
+				|| ab.0 != 0.0 && ac.0 != 0.0 && ab.0.signum() == ac.0.signum()
+				&& ab.1.signum() == ac.1.signum() && ab.1/ab.0 == ac.1/ac.0)
+				&& a.dist(&c) < a.dist(&b) {
+					continue 'outer2;
+				}
+			}
+			let mut ds = (1800.0*(-b.y as f32 + a.y as f32).atan2(b.x as f32 - a.x as f32)/std::f32::consts::PI) as i32 - 900;
+			if ds <= 0 {
+				ds += 3600;
+			}
+			v2.push((b,ds));
+		}
+	}
+	v2.sort_by_key(|x| -x.1);
+	println!("{:?}",v2);
+	println!("{}",100*v2[198].0.x + v2[198].0.y);
 
 	Ok(())
 }
