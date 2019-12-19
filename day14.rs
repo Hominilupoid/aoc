@@ -28,29 +28,36 @@ impl Chemicalizer {
 		for (k,_) in &hm {
 			surplus.insert(k.to_owned(),0);
 		}
-		surplus.insert("ORE".to_owned(),0);
 		Chemicalizer {
 			chemicals: hm,
 			surplus,
 		}
 	}
 
-	pub fn generate (&mut self, s: &str) -> u32 {
+	pub fn generate<'a> (&'a mut self, mut s: &'a str) -> u32 {
 		let mut x = 0;
-		if let Some(c) = self.chemicals.get(s) {
-			let n = c.ingredients[0].0;
-			let i = &c.ingredients[0].1;
-			if self.surplus[i] >= n {
-				*self.surplus.get_mut(i).unwrap() -= n;
-			}
-			else {
-				*self.surplus.get_mut(s).unwrap() += c.batch;
+		let mut is = Vec::new();
+		is.push(s);
+		while !is.is_empty() {
+			s = is.remove(0);
+			let c = self.chemicals.get(s).unwrap();
+			for ii in 0..c.ingredients.len() {
+				let n = c.ingredients[ii].0;
+				let i = &c.ingredients[ii].1;
 				if i == "ORE" {
-					*self.surplus.get_mut(i).unwrap() += n;
 					x += n;
 				}
 				else {
-					x += self.generate(s);
+					if self.surplus[i] >= n {
+						*self.surplus.get_mut(i).unwrap() -= n;
+					}
+					else {
+						while self.surplus[i] < n {
+							*self.surplus.get_mut(i).unwrap() += self.chemicals[i].batch;
+							is.push(i);
+						}
+						*self.surplus.get_mut(i).unwrap() -= n;
+					}
 				}
 			}
 		}
@@ -101,7 +108,7 @@ fn main () -> std::io::Result<()> {
 	let mut file = File::open("input14")?;
 	file.read_to_string(&mut data)?;
 	let mut c = Chemicalizer::new(parse(&data));
-	println!("{}",c.generate("A"));
+	println!("{}",c.generate("FUEL"));
 
 	Ok(())
 }
