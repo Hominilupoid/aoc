@@ -19,6 +19,44 @@ impl Chemical {
 
 pub struct Chemicalizer {
 	chemicals: HashMap<String,Chemical>,
+	surplus: HashMap<String,u32>,
+}
+
+impl Chemicalizer {
+	pub fn new (hm: HashMap<String,Chemical>) -> Chemicalizer {
+		let mut surplus = HashMap::new();
+		for (k,_) in &hm {
+			surplus.insert(k.to_owned(),0);
+		}
+		surplus.insert("ORE".to_owned(),0);
+		Chemicalizer {
+			chemicals: hm,
+			surplus,
+		}
+	}
+
+	pub fn generate (&mut self, s: &str) -> u32 {
+		let mut x = 0;
+		if let Some(c) = self.chemicals.get(s) {
+			let n = c.ingredients[0].0;
+			let i = &c.ingredients[0].1;
+			if self.surplus[i] >= n {
+				*self.surplus.get_mut(i).unwrap() -= n;
+			}
+			else {
+				*self.surplus.get_mut(s).unwrap() += c.batch;
+				if i == "ORE" {
+					*self.surplus.get_mut(i).unwrap() += n;
+					x += n;
+				}
+				else {
+					x += self.generate(s);
+				}
+			}
+		}
+		println!("{:?}",self.surplus);
+		x
+	}
 }
 
 fn parse (s: &str) -> HashMap<String,Chemical> {
@@ -62,8 +100,8 @@ fn main () -> std::io::Result<()> {
 	let mut data = String::new();
 	let mut file = File::open("input14")?;
 	file.read_to_string(&mut data)?;
-
-	println!("{:?}",parse(&data));
+	let mut c = Chemicalizer::new(parse(&data));
+	println!("{}",c.generate("A"));
 
 	Ok(())
 }
