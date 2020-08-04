@@ -4,12 +4,12 @@ use std::collections::HashMap;
 
 #[derive(Debug)]
 pub struct Chemical {
-	ingredients: Vec<(u32,String)>,
-	batch: u32,
+	ingredients: Vec<(u128,String)>,
+	batch: u128,
 }
 
 impl Chemical {
-	pub fn new (v: &[(u32,String)], n: u32) -> Chemical {
+	pub fn new (v: &[(u128,String)], n: u128) -> Chemical {
 		Chemical {
 			ingredients: v.to_vec(),
 			batch: n,
@@ -19,7 +19,7 @@ impl Chemical {
 
 pub struct Chemicalizer {
 	chemicals: HashMap<String,Chemical>,
-	surplus: HashMap<String,u32>,
+	surplus: HashMap<String,u128>,
 }
 
 impl Chemicalizer {
@@ -34,34 +34,30 @@ impl Chemicalizer {
 		}
 	}
 
-	pub fn generate<'a> (&'a mut self, mut s: &'a str) -> u32 {
+	pub fn generate<'a> (&'a mut self, s: &'a str, n: u128) -> u128 {
 		let mut x = 0;
 		let mut is = Vec::new();
-		is.push(s);
+		is.push((n,s));
 		while !is.is_empty() {
-			s = is.remove(0);
+			let (sn,s) = is.remove(0);
 			let c = self.chemicals.get(s).unwrap();
 			for ii in 0..c.ingredients.len() {
-				let n = c.ingredients[ii].0;
+				let n = sn*c.ingredients[ii].0;
 				let i = &c.ingredients[ii].1;
 				if i == "ORE" {
-					x += n;
+					x += n as u128;
 				}
 				else {
-					if self.surplus[i] >= n {
-						*self.surplus.get_mut(i).unwrap() -= n;
+					if self.surplus[i] < n {
+						let r = (((n - self.surplus[i]) as f64)/(self.chemicals[i].batch as f64)).ceil() as u128;
+						*self.surplus.get_mut(i).unwrap() += r*self.chemicals[i].batch;
+						is.push((r,i));
 					}
-					else {
-						while self.surplus[i] < n {
-							*self.surplus.get_mut(i).unwrap() += self.chemicals[i].batch;
-							is.push(i);
-						}
-						*self.surplus.get_mut(i).unwrap() -= n;
-					}
+					*self.surplus.get_mut(i).unwrap() -= n;
 				}
 			}
 		}
-		println!("{:?}",self.surplus);
+		//println!("{:?}",self.surplus);
 		x
 	}
 }
@@ -108,7 +104,29 @@ fn main () -> std::io::Result<()> {
 	let mut file = File::open("input14")?;
 	file.read_to_string(&mut data)?;
 	let mut c = Chemicalizer::new(parse(&data));
-	println!("{}",c.generate("FUEL"));
+	let mut f_min = 1_000_000_000_000/c.generate("FUEL",1);
+	let mut f_max = 2*f_min;
+	let mut f_avg = (f_min + f_max)/2;
+	let mut o = c.generate("FUEL",f_avg);
+	while f_max - f_min > 1 {
+		if o == 1_000_000_000_000 {
+			break;
+		}
+		else if o < 1_000_000_000_000 {
+			let f = f_avg;
+			f_avg = (f_avg + f_max)/2;
+			f_min = f;
+		}
+		else {
+			let f = f_avg;
+			f_avg = (f_min + f_avg)/2;
+			f_max = f;
+		}
+		c = Chemicalizer::new(parse(&data));
+		o = c.generate("FUEL",f_avg);
+		println!("{}",o);
+	}
+	println!("{}",f_avg);
 
 	Ok(())
 }
